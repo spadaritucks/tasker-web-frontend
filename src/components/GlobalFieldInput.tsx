@@ -1,13 +1,14 @@
-import { Field, FieldDescription, FieldLabel } from "./ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "./ui/field";
 import { Input } from "./ui/input";
 import type { InputHTMLAttributes } from "react";
 
 interface GlobalFieldInput extends InputHTMLAttributes<HTMLInputElement> {
     label?: string
     description?: string
+    error? : string
 }
 
-export default function GlobalFieldInput({ label, description, ...props }: GlobalFieldInput) {
+export default function GlobalFieldInput({ label, description, error, ...props }: GlobalFieldInput) {
 
     return (
         <Field>
@@ -17,6 +18,7 @@ export default function GlobalFieldInput({ label, description, ...props }: Globa
                 <FieldDescription>
                     {description}
                 </FieldDescription> : null}
+                {error ? <FieldError>{error}</FieldError> : null}
         </Field>
     )
 }

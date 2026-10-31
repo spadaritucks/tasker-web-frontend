@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Field, FieldDescription, FieldLabel } from "./ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "./ui/field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 export interface GlobalFieldSelectOption {
@@ -13,6 +13,7 @@ interface GlobalFieldSelectProps {
     id?: string;
     name?: string;
     value?: string;
+    error?: string;
     defaultValue?: string;
     placeholder?: string;
     disabled?: boolean;
@@ -30,6 +31,7 @@ export default function GlobalFieldSelect({
     defaultValue,
     placeholder = "Selecione uma opção",
     disabled,
+    error,
     onValueChange,
     onBlur,
     options,
@@ -60,6 +62,7 @@ export default function GlobalFieldSelect({
                 </SelectContent>
             </Select>
             {description ? <FieldDescription>{description}</FieldDescription> : null}
+            {error ? <FieldError>{error}</FieldError> : null}
         </Field>
     );
 }

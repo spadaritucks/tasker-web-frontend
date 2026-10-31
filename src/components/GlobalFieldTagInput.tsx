@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { PlusIcon, Trash2Icon } from "lucide-react";
-import { Field, FieldDescription, FieldLabel } from "./ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "./ui/field";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import {
@@ -20,6 +20,7 @@ interface GlobalFieldTagInputProps {
     id?: string;
     label?: string;
     description?: string;
+    error? : string;
     options: TagInputOption[];
     value: string[];
     onChange: (value: string[]) => void;
@@ -31,6 +32,7 @@ export default function GlobalFieldTagInput({
     description,
     options,
     value,
+    error,
     onChange,
 }: GlobalFieldTagInputProps) {
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -123,6 +125,7 @@ export default function GlobalFieldTagInput({
             )}
 
             {description ? <FieldDescription>{description}</FieldDescription> : null}
+             {error ? <FieldError>{error}</FieldError> : null}
         </Field>
     );
 }

@@ -16,20 +16,69 @@ import { useNavigate } from "react-router-dom";
 import { EventType } from "@/enums/EventType";
 import { RecurrenceFrequency } from "@/enums/RecurrenceFrequency";
 
+
 const CreateEventSchema = z.object({
     title: z.string().min(1, "O título do evento é obrigatório"),
     description: z.string().optional(),
     eventType: z.number().int().min(0).max(3),
     startDate: z.date({ message: "Data de Inicio do evento é obrigatorio" }),
-    endDate: z.date({ message: "Data de Final do evento é obrigatorio" }),
+    endDate: z.date().optional(),
+    startHour: z.string().optional(),
+    endHour: z.string().optional(),
     recurrenceFrequency: z.number().int().min(0).max(3).optional(),
     recurrenceInterval: z.number().int().min(1).optional(),
     daysOfWeek: z.array(z.string()).optional(),
     recurrenceCount: z.number().int().positive().optional(),
     recurrenceUntil: z.date().optional(),
-}).refine((data) => data.endDate >= data.startDate, {
-    message: "A data de término deve ser posterior à data de início",
-    path: ["endDate"],
+}).superRefine((data, context) => {
+    const hasTime =
+        data.eventType === EventType.Timed ||
+        data.eventType === EventType.Recurring;
+
+    if (hasTime) {
+        if (!data.startHour) {
+            context.addIssue({
+                code: "custom",
+                message: "O horário de início é obrigatório",
+                path: ["startHour"],
+            });
+        }
+
+        if (!data.endHour) {
+            context.addIssue({
+                code: "custom",
+                message: "O horário de término é obrigatório",
+                path: ["endHour"],
+            });
+        }
+
+        if (data.startHour && data.endHour && data.endHour <= data.startHour) {
+            context.addIssue({
+                code: "custom",
+                message: "O horário de término deve ser posterior ao horário de início",
+                path: ["endHour"],
+            });
+        }
+
+        return;
+    }
+
+    if (!data.endDate) {
+        context.addIssue({
+            code: "custom",
+            message: "A data de término é obrigatória",
+            path: ["endDate"],
+        });
+        return;
+    }
+
+    if (data.endDate < data.startDate) {
+        context.addIssue({
+            code: "custom",
+            message: "A data de término deve ser posterior ou igual à data de início",
+            path: ["endDate"],
+        });
+    }
 });
 
 
@@ -60,13 +109,33 @@ export default function CreateEvent() {
 
     const selectedEventType = watch("eventType")
 
+    function CombinateDateAndTime(date: Date, time: string) {
+        const [hours, minutes] = time.split(":").map(Number);
+        const result = new Date(date)
+        result.setHours(hours, minutes, 0, 0)
+        return result
+
+    }
+
     async function SubmitForm(data: CreateEventFormData) {
+
+        const hasTime =
+            data.eventType === EventType.Timed ||
+            data.eventType === EventType.Recurring;
+
+        const startDate = hasTime && data.startHour
+            ? CombinateDateAndTime(data.startDate, data.startHour)
+            : data.startDate;
+        const endDate = hasTime && data.endHour
+            ? CombinateDateAndTime(data.startDate, data.endHour)
+            : data.endDate!;
+
         await CreateEventMutation.mutateAsync({
             title: data.title,
             description: data.description,
             eventType: data.eventType as EventType,
-            startDate: data.startDate.toISOString(),
-            endDate: data.endDate.toISOString(),
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString(),
             recurrency: data.eventType === EventType.Recurring
                 ? {
                     frequency: (data.recurrenceFrequency ?? RecurrenceFrequency.Weekly) as RecurrenceFrequency,
@@ -95,11 +164,13 @@ export default function CreateEvent() {
                             <GlobalFieldInput
                                 label="Titulo do Evento"
                                 placeholder="Aula de Ingles"
+                                error={errors && errors.title ? errors.title.message : undefined}
                                 {...register("title")}
                             />
                             <GlobalFieldTextArea
                                 label="Descrição do Evento"
                                 placeholder="Aula de Ingles com a professora Maria Beatriz da D-Fluency as 08h00"
+                                error={errors && errors.description ? errors.description.message : undefined}
                                 {...register("description")}
                             />
                             <Controller
@@ -110,6 +181,7 @@ export default function CreateEvent() {
                                         id="event-type"
                                         name={field.name}
                                         label="Tipo do evento"
+                                        error={errors && errors.eventType ? errors.eventType.message : undefined}
                                         value={String(field.value)}
                                         onValueChange={(value) => field.onChange(Number(value))}
                                         onBlur={field.onBlur}
@@ -131,6 +203,7 @@ export default function CreateEvent() {
                                             <GlobalFieldSelect
                                                 id="recurrence-frequency"
                                                 name={field.name}
+                                                error={errors && errors.recurrenceFrequency ? errors.recurrenceFrequency.message : undefined}
                                                 label="Frequência"
                                                 value={String(field.value)}
                                                 onValueChange={(value) => field.onChange(Number(value))}
@@ -148,6 +221,7 @@ export default function CreateEvent() {
                                         id="recurrence-interval"
                                         type="number"
                                         min={1}
+                                        error={errors && errors.recurrenceInterval ? errors.recurrenceInterval.message : undefined}
                                         label="A cada quantos períodos?"
                                         {...register("recurrenceInterval", { valueAsNumber: true })}
                                     />
@@ -159,6 +233,7 @@ export default function CreateEvent() {
                                                 <GlobalFieldTagInput
                                                     id="days-of-week"
                                                     label="Dias da semana"
+                                                    error={errors && errors.daysOfWeek ? errors.daysOfWeek.message : undefined}
                                                     options={[
                                                         { label: "Segunda-feira", value: "MO" },
                                                         { label: "Terça-feira", value: "TU" },
@@ -178,40 +253,81 @@ export default function CreateEvent() {
                                         id="recurrence-count"
                                         type="number"
                                         min={1}
+                                        error={errors && errors.recurrenceCount ? errors.recurrenceCount.message : undefined}
                                         label="Quantidade de ocorrências"
                                         {...register("recurrenceCount", { valueAsNumber: true })}
                                     />
                                 </div>
                             )}
-                            <Controller
-                                name="startDate"
-                                control={control}
-                                render={({ field }) => (
-                                    <DatePicker
-                                        id="event-start-date"
-                                        label="Data de início"
-                                        onChange={field.onChange}
-                                        value={field.value}
-                                        description={errors.startDate?.message}
-                                    />
+
+                            {selectedEventType && selectedEventType == EventType.Recurring ||
+                                selectedEventType == EventType.Timed ?
+                                (
+                                    <>
+                                        <Controller
+                                            name="startDate"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <DatePicker
+                                                    id="event-start-date"
+                                                    label="Data de início"
+                                                    error={errors && errors.startDate ? errors.startDate.message : undefined}
+                                                    onChange={field.onChange}
+                                                    value={field.value}
+                                                />
+                                            )
+
+                                            }
+                                        />
+                                        <GlobalFieldInput
+                                            id="event-start-hour"
+                                            type="time"
+                                            error={errors && errors.startHour ? errors.startHour.message : undefined}
+                                            label="Inicio"
+                                            {...register("startHour")}
+                                        />
+                                        <GlobalFieldInput
+                                            id="event-end-hour"
+                                            type="time"
+                                            error={errors && errors.endHour ? errors.endHour.message : undefined}
+                                            label="Fim"
+                                            {...register("endHour")}
+                                        />
+                                    </>
                                 )
+                                :
+                                (
+                                    <>
+                                        <Controller
+                                            name="startDate"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <DatePicker
+                                                    id="event-start-date"
+                                                    label="Data de início"
+                                                    error={errors && errors.startDate ? errors.startDate.message : undefined}
+                                                    onChange={field.onChange}
+                                                    value={field.value}
+                                                />
+                                            )
 
-                                }
-                            />
-
-                            <Controller
-                                name="endDate"
-                                control={control}
-                                render={({ field }) => (
-                                    <DatePicker
-                                        id="event-end-date"
-                                        label="Data de término"
-                                        onChange={field.onChange}
-                                        value={field.value}
-                                    />
+                                            }
+                                        />
+                                        <Controller
+                                            name="endDate"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <DatePicker
+                                                    id="event-end-date"
+                                                    label="Data de término"
+                                                    error={errors && errors.endDate ? errors.endDate.message : undefined}
+                                                    onChange={field.onChange}
+                                                    value={field.value}
+                                                />
+                                            )}
+                                        />
+                                    </>
                                 )}
-                            />
-
 
                         </FieldSet>
                     </FieldGroup>

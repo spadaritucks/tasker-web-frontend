@@ -6,7 +6,7 @@ import { ChevronDownIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-import { Field, FieldLabel } from "@/components/ui/field"
+import { Field, FieldLabel, FieldError } from "@/components/ui/field"
 import {
     Popover,
     PopoverContent,
@@ -24,6 +24,7 @@ export interface DatePickerProps {
     onChange?: (date: Date | undefined) => void
     disabled?: boolean
     className?: string
+    error?: string
 }
 
 export default function DatePicker({
@@ -33,6 +34,7 @@ export default function DatePicker({
     placeholder = "Selecione uma data",
     value,
     onChange,
+    error,
     disabled = false,
     className,
 }: DatePickerProps) {
@@ -70,6 +72,7 @@ export default function DatePicker({
                 </PopoverContent>
             </Popover>
             {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+            {error ? <FieldError>{error}</FieldError> : null}
         </Field>
     )
 }

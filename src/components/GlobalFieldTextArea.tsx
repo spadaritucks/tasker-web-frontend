@@ -1,13 +1,14 @@
-import { Field, FieldDescription, FieldLabel } from "./ui/field";
+import { Field, FieldDescription, FieldError, FieldLabel } from "./ui/field";
 import type { TextareaHTMLAttributes } from "react";
 import { Textarea } from "./ui/textarea";
 
 interface GlobalFieldTextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
     label?: string
     description?: string
+    error?: string
 }
 
-export default function GlobalFieldTextArea({ label, description, ...props }: GlobalFieldTextAreaProps) {
+export default function GlobalFieldTextArea({ label, description, error, ...props }: GlobalFieldTextAreaProps) {
 
     return (
         <Field>
@@ -17,6 +18,7 @@ export default function GlobalFieldTextArea({ label, description, ...props }: Gl
                 <FieldDescription>
                     {description}
                 </FieldDescription> : null}
+                  {error ? <FieldError>{error}</FieldError> : null}
         </Field>
     )
 }
