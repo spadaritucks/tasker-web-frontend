@@ -37,6 +37,7 @@ export default function DatePicker({
     className,
 }: DatePickerProps) {
     const [open, setOpen] = React.useState(false)
+    const dateValue = typeof value === "string" ? new Date(value) : value
 
     return (
         <Field>
@@ -50,7 +51,7 @@ export default function DatePicker({
                             id={id}
                             className={cn("w-full justify-between font-normal", className)}
                         >
-                            {value ? format(value, "PPP") : placeholder}
+                            {dateValue ? format(dateValue, "PPP") : placeholder}
                             <ChevronDownIcon data-icon="inline-end" />
                         </Button>
                     }
@@ -58,9 +59,9 @@ export default function DatePicker({
                 <PopoverContent className="w-auto overflow-hidden p-0" align="start">
                     <Calendar
                         mode="single"
-                        selected={value}
+                        selected={dateValue}
                         captionLayout="dropdown"
-                        defaultMonth={value}
+                        defaultMonth={dateValue}
                         onSelect={(date) => {
                             onChange?.(date)
                             setOpen(false)

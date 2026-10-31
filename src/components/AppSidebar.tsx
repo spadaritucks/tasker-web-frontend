@@ -44,7 +44,7 @@ export function AppSidebar({ user }: AppSidebarProps) {
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                      <SidebarMenuItem>
-                        <SidebarMenuButton render={<a href="/home" />}>
+                        <SidebarMenuButton render={<a href="/calendar" />}>
                             <img src={CalendarIcon} alt="Calendário" className="w-6 h-6" />
                             <span>Calendário</span>
                         </SidebarMenuButton>

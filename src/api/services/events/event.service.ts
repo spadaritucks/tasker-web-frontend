@@ -69,4 +69,39 @@ export class EventService {
 
         return response;
     }
+
+    static async GetBlockedDates(
+        year: number, month: number
+    ): Promise<ApiGlobalResponse<string[]>> {
+        const params = new URLSearchParams();
+
+        if (!year || !month) {
+            throw new Error("O Mês e o Ano devem estar presentes")
+        }
+
+        params.set("year", year.toString());
+        params.set("month", month.toString());
+
+
+        const queryString = params.toString();
+
+        const request = await fetch(
+            `${env.VITE_API_BASE_URL}/Event/blocked-dates${queryString ? `?${queryString}` : ""}`,
+            {
+                method: "GET",
+                credentials: "include",
+            }
+        );
+
+        const response = await request.json() as ApiGlobalResponse<string[]>;
+
+        if (!request.ok || !response.success) {
+            throw new Error(
+                response.error?.message
+                ?? "Não foi possível listar os eventos."
+            );
+        }
+
+        return response;
+    }
 }

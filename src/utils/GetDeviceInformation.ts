@@ -2,7 +2,7 @@ import fpJS from '@fingerprintjs/fingerprintjs';
 
 interface DeviceData {
   deviceId: string;
-  languages: readonly string[];
+  languages: readonly string[][];
   platform: string;
   screenResolution: [number, number];
 }
@@ -21,9 +21,15 @@ export async function getDeviceInformation(): Promise<DeviceData | null> {
 
     // Informações adicionais do dispositivo capturadas pelos componentes internos
     const components = result.components;
-    const languages = components.languages.value as readonly string[];
-    const platform = components.platform.value as string;
-    const screenResolution = components.screenResolution.value as [number, number];
+    const languages = "value" in components.languages
+      ? components.languages.value as readonly string[][]
+      : [];
+    const platform = "value" in components.platform
+      ? components.platform.value as string
+      : "unknown";
+    const screenResolution = "value" in components.screenResolution
+      ? components.screenResolution.value as [number, number]
+      : [0, 0] as [number, number];
 
     return {
       deviceId,

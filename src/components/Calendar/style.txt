@@ -1,0 +1,46 @@
+ width: '100%',
+  fontFamily: '$default',
+  borderSpacing: '0.25rem',
+  tableLayout: 'fixed',
+
+  'thead th': {
+    color: '$gray200',
+    fontWeight: '$medium',
+    fontSize: '$sm',
+  },
+
+  'tbody:before': {
+    lineHeight: '0.75rem',
+    content: '.',
+    display: 'block',
+    color: '$gray800',
+  },
+
+  'tbody td': {
+    boxSizing: 'border-box',
+  },
+
+  <thead>
+                    <tr>
+                        {shortWeekDay.map(weekDay => (
+                            <th key={weekDay}>{weekDay}.</th>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody>
+                    {calendarWeeks.map(({ week, days }) => {
+
+                        return (
+                            <tr key={week}>
+                                {days.map(({ date, disabled }) => {
+
+                                    return (
+                                        <td key={date.toString()}>
+                                            <CalendarDay onClick={() => onDateSelected(date.toDate())} disabled={disabled}>{date.get('date')}</CalendarDay>
+                                        </td>
+                                    )
+                                })}
+                            </tr>
+                        )
+                    })}
+                </tbody>

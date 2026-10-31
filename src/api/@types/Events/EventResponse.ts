@@ -1,4 +1,5 @@
 import type { EventSyncStatus } from "@/enums/EventSyncStatus"
+import type { EventType } from "@/enums/EventType"
 
 export type EventResponse = {
     id: string;
@@ -11,5 +12,5 @@ export type EventResponse = {
     googleHtmlLink: string | null;
     syncStatus: EventSyncStatus;
     createdAt: string;
+    eventType: EventType;
 }
-
